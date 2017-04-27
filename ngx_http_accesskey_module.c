@@ -7,24 +7,8 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
-
-#if (NGX_HAVE_OPENSSL_MD5_H)
-#include <openssl/md5.h>
-#else
-#include <md5.h>
-#endif
-
-#if (NGX_OPENSSL_MD5)
-#define  MD5Init    MD5_Init
-#define  MD5Update  MD5_Update
-#define  MD5Final   MD5_Final
-#endif
-
-#if (NGX_HAVE_OPENSSL_SHA1_H)
-#include <openssl/sha.h>
-#else
-#include <sha.h>
-#endif
+#include <ngx_md5.h>
+#include <ngx_sha1.h>
 
 #define NGX_ACCESSKEY_MD5 1
 #define NGX_ACCESSKEY_SHA1 2
@@ -141,7 +125,7 @@ ngx_http_accesskey_handler(ngx_http_request_t *r)
 	case NGX_ACCESSKEY_MD5:
             bhashlength=16; break;
 
-        default: 
+        default:
            ngx_log_error(NGX_LOG_INFO, r->connection->log, 0,
                "accesskey: hash not supported");
            return NGX_HTTP_FORBIDDEN;
@@ -185,19 +169,19 @@ ngx_http_accesskey_handler(ngx_http_request_t *r)
 
     u_char hashb[64], hasht[128];
 
-    MD5_CTX md5;
-    SHA_CTX sha;
+    ngx_md5_t md5;
+    ngx_sha1_t sha;
 
     switch(alcf->hashmethod) {
-	case NGX_ACCESSKEY_MD5: 
-            MD5Init(&md5);
-            MD5Update(&md5,val.data,val.len);
-            MD5Final(hashb, &md5);
+	case NGX_ACCESSKEY_MD5:
+            ngx_md5_init(&md5);
+            ngx_md5_update(&md5,val.data,val.len);
+            ngx_md5_final(hashb, &md5);
             break;
-        case NGX_ACCESSKEY_SHA1: 
-            SHA1_Init(&sha);
-            SHA1_Update(&sha,val.data,val.len);
-            SHA1_Final(hashb,&sha);
+        case NGX_ACCESSKEY_SHA1:
+            ngx_sha1_init(&sha);
+            ngx_sha1_update(&sha,val.data,val.len);
+            ngx_sha1_final(hashb,&sha);
             break;
     };
 
